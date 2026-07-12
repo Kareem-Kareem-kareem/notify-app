@@ -14,6 +14,14 @@ const { loadConfig, saveConfig } = require("./config");
 
 const RING_INTERVAL_MS = 5 * 60 * 1000;
 const RECONNECT_DELAY_MS = 4000;
+const APP_USER_MODEL_ID = "com.notifyroom.receiver";
+
+// Windows only shows the corner toast notification reliably when the app
+// has a registered AppUserModelID that matches the installed shortcut —
+// without this, notifications can silently fail to appear.
+if (process.platform === "win32") {
+  app.setAppUserModelId(APP_USER_MODEL_ID);
+}
 
 let tray = null;
 let soundWindow = null;
@@ -76,6 +84,7 @@ function showNotification(fromName) {
   const notification = new Notification({
     title: `Notification from ${fromName || "Admin"}`,
     body: "Tap to open Notify Receiver.",
+    icon: path.join(__dirname, "..", "assets", "tray.png"),
     silent: true, // we play our own repeating sound
   });
   notification.show();
