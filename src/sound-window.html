@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>notify-receiver-sound</title>
+  </head>
+  <body>
+    <audio id="alert" src="../assets/alert.mp3"></audio>
+    <script>
+      const { ipcRenderer } = require("electron");
+      const audio = document.getElementById("alert");
+      ipcRenderer.on("play-sound", () => {
+        try {
+          audio.currentTime = 0;
+          audio.volume = 1.0;
+          audio.play().catch(() => {});
+        } catch {}
+      });
+    </script>
+  </body>
+</html>
