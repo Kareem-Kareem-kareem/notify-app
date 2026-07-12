@@ -1,0 +1,38 @@
+name: Build Notify Receiver.exe
+
+# Push this desktop-app folder to a GitHub repo and this workflow builds a
+# Windows .exe for you automatically — no Windows machine required.
+# After it finishes, open the workflow run and download the "notify-receiver-windows"
+# artifact zip; it contains the installer .exe.
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "desktop-app/**"
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: desktop-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Windows installer
+        run: npm run dist
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: notify-receiver-windows
+          path: desktop-app/dist/*.exe
