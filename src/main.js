@@ -82,8 +82,8 @@ function playSound() {
 
 function showNotification(fromName) {
   const notification = new Notification({
-    title: `Notification from ${fromName || "Admin"}`,
-    body: "Tap to open Notify Receiver.",
+    title: "Time is up",
+    body: `Notification from ${fromName || "Admin"}`,
     icon: path.join(__dirname, "..", "assets", "tray.png"),
     silent: true, // we play our own repeating sound
   });
