@@ -6,14 +6,27 @@
   </head>
   <body>
     <audio id="alert" src="../assets/alert.mp3"></audio>
+    <audio id="voice"></audio>
     <script>
       const { ipcRenderer } = require("electron");
       const audio = document.getElementById("alert");
+      const voice = document.getElementById("voice");
+
       ipcRenderer.on("play-sound", () => {
         try {
           audio.currentTime = 0;
           audio.volume = 1.0;
           audio.play().catch(() => {});
+        } catch {}
+      });
+
+      // Plays back the admin's recorded voice message, sent as base64 audio.
+      ipcRenderer.on("play-voice", (_event, { data, mimeType }) => {
+        try {
+          voice.src = `data:${mimeType};base64,${data}`;
+          voice.currentTime = 0;
+          voice.volume = 1.0;
+          voice.play().catch(() => {});
         } catch {}
       });
     </script>
