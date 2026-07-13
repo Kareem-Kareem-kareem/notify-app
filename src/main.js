@@ -12,7 +12,7 @@ const path = require("path");
 const WebSocket = require("ws");
 const { loadConfig, saveConfig } = require("./config");
 
-const RING_INTERVAL_MS = 5 * 60 * 1000;
+const RING_INTERVAL_MS = 1 * 60 * 1000;
 const RECONNECT_DELAY_MS = 4000;
 const APP_USER_MODEL_ID = "com.notifyroom.receiver";
 
@@ -31,6 +31,8 @@ let reconnectTimeout = null;
 let ringTimer = null;
 let connected = false;
 let lastFrom = null;
+let lastAudio = null;
+let lastAudioMime = "audio/mp4";
 
 const config = loadConfig();
 
@@ -80,6 +82,18 @@ function playSound() {
   }
 }
 
+// Plays back the admin's own recorded voice message (sent as base64 audio
+// over the room WebSocket) through the hidden renderer window.
+function playVoice(base64Audio, mimeType) {
+  if (!base64Audio) return;
+  if (soundWindow && !soundWindow.isDestroyed()) {
+    soundWindow.webContents.send("play-voice", {
+      data: base64Audio,
+      mimeType: mimeType || "audio/mp4",
+    });
+  }
+}
+
 function showNotification(fromName) {
   const notification = new Notification({
     title: "Time is up",
@@ -93,6 +107,8 @@ function showNotification(fromName) {
 function ring() {
   showNotification(lastFrom);
   playSound();
+  // Give the alert tone a beat to finish before the spoken message starts.
+  setTimeout(() => playVoice(lastAudio, lastAudioMime), 800);
   updateTrayMenu();
 }
 
@@ -104,8 +120,10 @@ function stopRinging() {
   }
 }
 
-function startRinging(fromName) {
+function startRinging(fromName, audio, mimeType) {
   lastFrom = fromName;
+  lastAudio = audio || null;
+  lastAudioMime = mimeType || "audio/mp4";
   ring();
   if (ringTimer) clearInterval(ringTimer);
   ringTimer = setInterval(ring, RING_INTERVAL_MS);
@@ -152,7 +170,10 @@ function connectWs() {
       return;
     }
     if (msg.type === "notify") {
-      startRinging(msg.from);
+      startRinging(msg.from, msg.audio, msg.mimeType);
+    }
+    if (msg.type === "dismiss") {
+      stopRinging();
     }
   });
 
@@ -252,7 +273,7 @@ function updateTrayMenu() {
       ? "Connected"
       : "Reconnecting…";
 
-  const ringingLabel = ringTimer ? "Ringing every 5 min" : "Idle";
+  const ringingLabel = ringTimer ? "Ringing every 1 min" : "Idle";
 
   const menu = Menu.buildFromTemplate([
     { label: `Name: ${config.name}`, enabled: false },
