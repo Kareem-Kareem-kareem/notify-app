@@ -15,6 +15,7 @@ const { loadConfig, saveConfig } = require("./config");
 const RING_INTERVAL_MS = 1 * 60 * 1000;
 const RECONNECT_DELAY_MS = 4000;
 const APP_USER_MODEL_ID = "com.notifyroom.receiver";
+app.commandLine.appendSwitch("autoplay-policy", "no-user-gesture-required");
 
 // Windows only shows the corner toast notification reliably when the app
 // has a registered AppUserModelID that matches the installed shortcut —
